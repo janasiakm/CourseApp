@@ -87,7 +87,7 @@ namespace FirstCourseApp
                                     break;
 
                                 default:
-                                    Console.WriteLine("Niewłasciwe polecenie!");
+                                    Console.WriteLine("Niewłasciwe polecenie!!");
                                     break;
                             }
 
