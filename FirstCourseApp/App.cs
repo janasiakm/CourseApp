@@ -65,22 +65,7 @@ namespace FirstCourseApp
                                     break;
 
                                 case "4":
-
-                                    var client = _csvReader.ProcessClient("Files//plik.csv");
-                                    foreach (var item in client)
-                                    {
-                                        _sqlRepository.Add(new Client
-                                        {
-
-                                            FirstName = item.FirstName,
-                                            LastName = item.LastName,
-                                            Adres = item.Adres,
-                                            PhoneNumber = item.PhoneNumber
-
-                                        });
-                                        
-                                    }
-                                    _sqlRepository.Save();
+                                    ImportClientCsv();
                                     break;
 
                                 case "0":
@@ -134,6 +119,24 @@ namespace FirstCourseApp
 
         }
 
+        private void ImportClientCsv()
+        {
+            var client = _csvReader.ProcessClient("Files//plik.csv");
+            foreach (var item in client)
+            {
+                _sqlRepository.Add(new Client
+                {
+                    FirstName = item.FirstName,
+                    LastName = item.LastName,
+                    Adres = item.Adres,
+                    PhoneNumber = item.PhoneNumber
+
+                });
+
+            }
+            _sqlRepository.Save();
+            Console.WriteLine("Zaimportowano klientow z pliku! ");
+        }
         public void ReadClientData()
         {
             string firstname = "";
