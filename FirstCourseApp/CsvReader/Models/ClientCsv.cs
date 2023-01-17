@@ -1,6 +1,6 @@
 ﻿namespace FirstCourseApp.CsvReader;
 
-    public class ClassModel
+    public class ClientCsv
     {
     public string FirstName { get; set; }
     public string LastName { get; set; }

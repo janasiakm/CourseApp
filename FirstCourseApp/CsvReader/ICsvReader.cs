@@ -5,7 +5,8 @@ namespace FirstCourseApp.CsvReader;
 
     public interface ICsvReader
     {
-        List<ClassModel> ProcessClient(string filePath);
+        List<ClientCsv> ProcessClient(string filePath);
+        List<EmployeeCsv> ProcessEmployee(string filePath);
 
     }
 
