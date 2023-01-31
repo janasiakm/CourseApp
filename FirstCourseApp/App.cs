@@ -11,33 +11,20 @@ namespace FirstCourseApp
 {
     public class App: IApp
     {
-        private readonly IRepository<Client> _sqlRepository; 
+        //private readonly IRepository<Client> _sqlRepository; 
         private readonly ICsvReader _csvReader; 
-        public App(IRepository<Client> baseRepository,ICsvReader CsvReader)
+        private readonly FirstCourseAppDbContext _context;
+        public App(ICsvReader CsvReader, FirstCourseAppDbContext context)
         {
-            _sqlRepository = baseRepository;
+            _context = context;
             _csvReader = CsvReader;
+            _context.Database.EnsureCreated();
         }
                 
         public void Run()
         {
             string action = "";
             string wybor2 = "";
-
-                        
-            for (int i = 0; i < 5; i++)
-            {
-                _sqlRepository.Add(new Client
-                {
-                    FirstName = "Imie" /*+ i.ToString()*/,
-                    LastName = "Nazwisko" /*+ i.ToString()*/,
-                    Adres = "Dom" /*+ i.ToString()*/,
-                    PhoneNumber = "0000" /*+ i.ToString()*/
-                });
-
-                _sqlRepository.Save();
-            }
-
 
             while (action != "0")
             {
@@ -105,16 +92,17 @@ namespace FirstCourseApp
             Console.WriteLine(" 1 - Edycja Klient");
             Console.WriteLine(" 2 - Edycja Pracownik");
             Console.WriteLine(" 0 - Zakończ program");
+            Console.Write("Twój wybór : ");
             return Console.ReadLine();
         }
 
         public void Write()
         {
-            var result = _sqlRepository.GetAll();
+            var result = _context.Clients.ToList();
             Console.WriteLine("Lista klientów: ");
             foreach (var item in result)
             {
-               Console.WriteLine(item.ToString());
+                Console.WriteLine(item.ToString());
             }
 
         }
@@ -124,7 +112,7 @@ namespace FirstCourseApp
             var client = _csvReader.ProcessClient("Files//plik.csv");
             foreach (var item in client)
             {
-                _sqlRepository.Add(new Client
+                _context.Clients.Add(new Client
                 {
                     FirstName = item.FirstName,
                     LastName = item.LastName,
@@ -132,9 +120,10 @@ namespace FirstCourseApp
                     PhoneNumber = item.PhoneNumber
 
                 });
-
+                
             }
-            _sqlRepository.Save();
+            _context.SaveChanges();
+            //_sqlRepository.Save();
             Console.WriteLine("Zaimportowano klientow z pliku! ");
         }
         public void ReadClientData()
@@ -153,33 +142,35 @@ namespace FirstCourseApp
             Console.Write("Podaj Numer telefonu: ");
             phonenumber = Console.ReadLine();
 
-            _sqlRepository.Add(new Client
+            _context.Clients.Add(new Client
             {
                 FirstName = firstname,
                 LastName = lastname,
                 Adres = adres,
                 PhoneNumber = phonenumber
             });
-
-            _sqlRepository.Save();
+            _context.SaveChanges();
+            // _sqlRepository.Save();
 
         }
 
         public void DeleteClient()
         {
-            Console.WriteLine("Podaj id klienta ktorego chcesz usunąć");
+            Console.Write("Podaj id klienta ktorego chcesz usunąć: ");
             string id = Console.ReadLine();
-            var result = _sqlRepository.GetById(Int32.Parse(id));
+           
+            var result = _context.Clients.FirstOrDefault(x => x.Id == Int32.Parse(id));
             if (result is not null)
             {
-                Console.WriteLine("Wybrany kilent to: /ln" + result.ToString());
-                Console.WriteLine("Czy na pewno chcesz usunąć klienta (Y/N): ");
+                Console.WriteLine("Wybrany kilent to:");
+                Console.WriteLine(result.ToString());
+                Console.Write("Czy na pewno chcesz usunąć klienta (Y/N) : ");
                 var accept = Console.ReadLine();
                 if (accept.ToUpper() == "Y")
                 {
-                    _sqlRepository.Remove(result);
-                    Console.WriteLine("Klient został usunięty.");
-                    _sqlRepository.Save();
+                    _context.Clients.Remove(result);
+                    Console.WriteLine("Klient został usunięty !");
+                    _context.SaveChanges();
                 }
                 else
                     Console.WriteLine("Klient nie został usunięty.");
@@ -195,6 +186,7 @@ namespace FirstCourseApp
             Console.WriteLine(" 3 - Usuń klienta");
             Console.WriteLine(" 4 - Import klientów z pliku");
             Console.WriteLine(" 0 - WYJDZ");
+            Console.Write("Twój wybór : ");
             var wybor2 = Console.ReadLine();
 
             return wybor2.ToUpper();
