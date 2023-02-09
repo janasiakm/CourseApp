@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using FirstCourseApp.Repositories.Interface;
 using FirstCourseApp.CsvReader;
 using FirstCourseApp.CsvReader.Extensions;
-
+using RabbitMQ.Client;
+using System.Text;
+using RabbitMQ.Client.Events;
 
 namespace FirstCourseApp
 {
@@ -20,7 +22,9 @@ namespace FirstCourseApp
             _csvReader = CsvReader;
             _context.Database.EnsureCreated();
         }
-                
+           
+        
+
         public void Run()
         {
             string action = "";
@@ -55,6 +59,14 @@ namespace FirstCourseApp
                                     ImportClientCsv();
                                     break;
 
+                                case "5":
+                                    RabbitMQMetod();
+                                    break;
+
+                                case "6":
+                                    RabbitMQDownload();
+                                    break;
+
                                 case "0":
                                     break;
 
@@ -86,12 +98,105 @@ namespace FirstCourseApp
                         
         }
 
+        private void RabbitMQDownload()
+        {
+            var factory2 = new ConnectionFactory() { HostName = "Localhost" };
+            using (var connection2 = factory2.CreateConnection())
+            using (var channel2 = connection2.CreateModel())
+            {
+                channel2.QueueDeclare(queue: "FirstApp",
+                    durable: false,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
+
+                var download1 = new EventingBasicConsumer(channel2);
+                download1.Received += (model, ea) =>
+                {
+                    var message2 = Encoding.UTF8.GetString(ea.Body.ToArray());
+                    Console.WriteLine("Odebrano: " + message2.ToString());
+                    
+                    //Console.WriteLine(message2.ToString());
+
+                    var columns = message2.Split(',');
+                    _context.Clients.Add(new Client
+                    {
+                        FirstName = columns[1],
+                        LastName = columns[2],
+                        Adres = columns[3],
+                        PhoneNumber = columns[4]
+
+                    });
+                    _context.SaveChanges();
+
+                    //channel2.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                    //Console.Write("stop ");
+                };
+
+                
+
+                channel2.BasicConsume(queue: "FirstApp",
+                    autoAck: true,
+                    consumer: download1);
+                
+            }
+
+        }
+
+        private void RabbitMQMetod()
+        {
+            var factory = new ConnectionFactory() { HostName = "Localhost" };
+            using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                channel.QueueDeclare(queue: "FirstApp",
+                    durable: false,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
+
+                Write();
+                bool stop = true;
+                do
+                {
+                    Console.Write("Podaj id użytkownika: ");
+                    string id = Console.ReadLine();
+                    var client = _context.Clients.FirstOrDefault(x => x.Id == Int32.Parse(id));
+                    if (client != null)
+                    {
+                        stop = false;
+                        var message = Encoding.UTF8.GetBytes(
+                         client.Id + "," +
+                         client.FirstName + "," +
+                         client.LastName + "," +
+                         client.Adres + "," +
+                         client.PhoneNumber);
+
+                        channel.BasicPublish(exchange: "",
+                           routingKey: "FirstApp",
+                           basicProperties: null, message);
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Brak użytkonika o podanym ID !!! ");
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+
+                } while (stop);
+            }
+
+        }
+
         private string Menu()
         {
+            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Wybierz co chcesz zrobić: ");
+            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(" 1 - Edycja Klient");
             Console.WriteLine(" 2 - Edycja Pracownik");
             Console.WriteLine(" 0 - Zakończ program");
+            Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("Twój wybór : ");
             return Console.ReadLine();
         }
@@ -99,7 +204,9 @@ namespace FirstCourseApp
         public void Write()
         {
             var result = _context.Clients.ToList();
+            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Lista klientów: ");
+            Console.ForegroundColor = ConsoleColor.White;
             foreach (var item in result)
             {
                 Console.WriteLine(item.ToString());
@@ -124,10 +231,13 @@ namespace FirstCourseApp
             }
             _context.SaveChanges();
             //_sqlRepository.Save();
+            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Zaimportowano klientow z pliku! ");
+            Console.ForegroundColor = ConsoleColor.White;
         }
         public void ReadClientData()
         {
+            Console.ForegroundColor = ConsoleColor.White;
             string firstname = "";
             string lastname = "";
             string adres = "";
@@ -162,33 +272,52 @@ namespace FirstCourseApp
             var result = _context.Clients.FirstOrDefault(x => x.Id == Int32.Parse(id));
             if (result is not null)
             {
-                Console.WriteLine("Wybrany kilent to:");
+                Console.Write("Wybrany kilent to:  ");
                 Console.WriteLine(result.ToString());
+
                 Console.Write("Czy na pewno chcesz usunąć klienta (Y/N) : ");
                 var accept = Console.ReadLine();
                 if (accept.ToUpper() == "Y")
                 {
                     _context.Clients.Remove(result);
+                    Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Klient został usunięty !");
+                    Console.ForegroundColor = ConsoleColor.White;
                     _context.SaveChanges();
                 }
                 else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Klient nie został usunięty.");
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
             }
-            else Console.WriteLine("Klient nie został usunięty.");
+            else
+            { 
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Klient nie został usunięty.");
+                Console.ForegroundColor = ConsoleColor.White; 
+            }
 
         }
 
         public string menuClient()
         {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("MENU KLIENTA: ");
+            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(" 1 - Dodaj nowego klienta");
             Console.WriteLine(" 2 - Wyświetl Liste klientów");
             Console.WriteLine(" 3 - Usuń klienta");
             Console.WriteLine(" 4 - Import klientów z pliku");
+            Console.WriteLine(" 5 - Wyslij użytkownika na kolejke Rabbit");
+            Console.WriteLine(" 6 - Pobierz użytkowników z kolejki Rabbit i zapisz do bazy");
             Console.WriteLine(" 0 - WYJDZ");
+            Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("Twój wybór : ");
             var wybor2 = Console.ReadLine();
-
+            Console.ForegroundColor = ConsoleColor.White;
+            
             return wybor2.ToUpper();
 
         }
