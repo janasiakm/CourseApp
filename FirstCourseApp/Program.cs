@@ -16,11 +16,6 @@ services.AddSingleton<ICsvReader,CsvReader>();
 services.AddDbContext<FirstCourseAppDbContext>(options => options
     .UseSqlServer("Data Source =.\\SQLEXPRESS; Initial Catalog = TEST2; Integrated Security = True"));
 
-//deklaracja RabbitMq
-
-
-
-
 var serviceProvider = services.BuildServiceProvider();
 var app = serviceProvider.GetService<IApp>();
 

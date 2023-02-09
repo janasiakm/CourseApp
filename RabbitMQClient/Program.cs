@@ -11,10 +11,6 @@ var service = new ServiceCollection();
     service.AddDbContext<DbContextRabbitClient>(options => options
         .UseSqlServer("Data Source =.\\SQLEXPRESS; Initial Catalog = TEST2; Integrated Security = True"));
 
-//service.AddDbContext<DbContextRabbitClient>(options => options
-//    .UseSqlServer("Data Source =.\\SQLEXPRESS; Initial Catalog = TEST2; Integrated Security = True"));
-
-
 var serviceProvider = service.BuildServiceProvider();
 var app = serviceProvider.GetService<IRabbitClient>();
 app.Run();
