@@ -1,8 +1,8 @@
-﻿namespace FirstCourseApp.Repositories;
+﻿using Microsoft.EntityFrameworkCore;
+using FirstCourseApp.Entities;
+using FirstCourseApp.Repositories.Interface; 
 
-    using Microsoft.EntityFrameworkCore;
-    using FirstCourseApp.Entities;
-using FirstCourseApp.Repositories.Interface;
+namespace FirstCourseApp.Repositories;
 
 public class SqlRepository<T> : IRepository<T>  
     where T : class, IBaseEntity, new()
