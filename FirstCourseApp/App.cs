@@ -8,7 +8,6 @@ using FirstCourseApp.CsvReader.Extensions;
 using RabbitMQ.Client;
 using System.Text;
 using RabbitMQ.Client.Events;
-using Microsoft.Extensions.Configuration;
 
 namespace FirstCourseApp
 {
@@ -17,13 +16,11 @@ namespace FirstCourseApp
         //private readonly IRepository<Client> _sqlRepository; 
         private readonly ICsvReader _csvReader; 
         private readonly FirstCourseAppDbContext _context;
-        
         public App(ICsvReader CsvReader, FirstCourseAppDbContext context)
         {
             _context = context;
             _csvReader = CsvReader;
             _context.Database.EnsureCreated();
-           
         }
            
         
