@@ -14,12 +14,15 @@ namespace FirstCourseApp.Data;
 
     //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     //{
+
     //     base.OnConfiguring(optionsBuilder);
     //     optionsBuilder.UseInMemoryDatabase("StorageAppDb");
+
     // }
 
     //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     //{ 
+
     //    base.OnConfiguring(optionsBuilder);
     //    optionsBuilder.UseSqlServer();
     //}
