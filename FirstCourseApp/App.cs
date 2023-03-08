@@ -8,6 +8,7 @@ using FirstCourseApp.CsvReader.Extensions;
 using RabbitMQ.Client;
 using System.Text;
 using RabbitMQ.Client.Events;
+using Serilog;
 
 namespace FirstCourseApp
 {
@@ -203,6 +204,7 @@ namespace FirstCourseApp
 
         public void Write()
         {
+            Log.Information("Lista Klientów");
             var result = _context.Clients.ToList();
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Lista klientów: ");
@@ -216,9 +218,11 @@ namespace FirstCourseApp
 
         private void ImportClientCsv()
         {
+            Log.Information("Import z Pliku CSV");
             var client = _csvReader.ProcessClient("Files//plik.csv");
             foreach (var item in client)
             {
+                Log.Information("Import klienta");
                 _context.Clients.Add(new Client
                 {
                     FirstName = item.FirstName,
@@ -259,6 +263,7 @@ namespace FirstCourseApp
                 Adres = adres,
                 PhoneNumber = phonenumber
             });
+            Log.Information("Wprowadzenie nowego klienta");
             _context.SaveChanges();
             // _sqlRepository.Save();
 
@@ -279,11 +284,13 @@ namespace FirstCourseApp
                 var accept = Console.ReadLine();
                 if (accept.ToUpper() == "Y")
                 {
+                    Log.Information("Usunięcie klienta: "+ result.ToString());
                     _context.Clients.Remove(result);
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Klient został usunięty !");
                     Console.ForegroundColor = ConsoleColor.White;
                     _context.SaveChanges();
+                    Log.Information("Usunięcie klienta: ");
                 }
                 else
                 {
